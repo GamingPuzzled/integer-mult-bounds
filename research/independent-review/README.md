@@ -144,6 +144,37 @@ Run through #363's seven-stage guard, it raises b₃ to 932928054566567/1e18 and
 every obligation above, including #363's unproved B₃ and #370's admissions. It was superseded the same day by #374, #375, #378 and #380. See
 [../e8-retimed-seven-stage](../e8-retimed-seven-stage/README.md).
 
+## Third round: #381
+
+**#381** (DaysSky, `00765b2`) claims κ = 995656966441037/1e18 ≈ 9.95657e-4, the
+first claim above 2⁻¹⁰ and +2.94% over #380. It puts #370's unchanged E8 bit word
+(`1fb726ea…`) in the nine-stage bridged word B₄ with unsplit idle climbs, and
+vendors #377's nine-stage complex component unchanged.
+
+- **Replay:** `verify.sh` passed in 5m33s. All word-level and record-level
+  negative controls were rejected; the F2 all-column check of B₄ and the E8
+  geometry on nine stages passed; the width-72 tiling, the finite bill
+  (48-bit coefficient, payload prefix 60 bits) and the K=2 regressions passed.
+- **Independent bit saving:** we derived the B₄ idle climbs separately
+  ([50], [14,7,36], [28,7,22], [42,7,8]; max child 50, W = 1825, deficit 312)
+  and recomputed ranks from frame dimensions. This gives c = 249162322049641/2.5e17
+  exactly. The same code reproduces the PR's control values: B₃ unsplit ≈ 9.9123e-4,
+  B₄ split ≈ 9.5702e-4, and B₃ split 968197503705007/1e18.
+- **κ:** recomputed with the outer assembly; it matches exactly. The bit side
+  binds, with only ≈ 2.6e-6 of headroom below the complex cap.
+- **Halving degree two:** the largest child is 50/72, so the bill charges
+  72² > 2·50² with internal row coefficient 2·(72²+1) = 10370 < 20161. This is a
+  standard mechanism: reviewed results on main use halving degrees 9 to 47 with
+  their row-stock cost. #377's own work notes still list integrating the general
+  halving degree with the inherited bad-envelope charge as unresolved.
+- **Unproved:** B₄ has no written or Lean proof on either side. The bit-side
+  evidence is F2 columns plus geometry on nine blocks. Also unproved are #370's
+  NCOPY = 9 and PR234-transfer admissions, the choice of E8 form, and every
+  #377 interface.
+
+Verdict: reproduced exactly as a conditional construction; it rests on B₄ and
+the inherited admissions.
+
 ## Reproduce
 
 ```sh
