@@ -88,6 +88,58 @@ bridged layout B₃ has no written or Lean proof (Sussman's bridge certificate c
 the five-stage layout) and inherits five-stage row constants. If admitted, it raises
 the complex cap to ≈ 9.33e-4, so bit-side gains up to that cap would count.
 
+## Second round: #370, #373, #371
+
+These were replayed by delegated subagents and spot-checked directly as noted.
+
+| PR | Head | Claim | Replay | Independent | Verdict |
+| --- | --- | --- | --- | --- | --- |
+| #370 | `b7fe9cd` | κ = 875481145306751/1e18, complex-bound; bit c = 452036410121261/5e17 | PASS, 123s | c and κ exact | arithmetic reproduced; bit word correct over F2 only |
+| #373 | `3ff87b5` | κ = 93191395651209/1e17, complex-bound; bit c = 968197503705007/1e18 | PASS, 2m34s | c and κ exact | reproduced; rests on unproved B₃ |
+| #371 | `988ef67` | correction to `lem:chirped-gaussian` | — | counterexample rechecked | flaw real, fix sound, no κ changes |
+
+**#370.** The E8 word's 14,603 ADDs all have coefficient +1. We replayed it over ℤ
+directly. All 865 helper registers fail to restore over ℤ, though every one is
+correct mod 2. #366's p=10 word, with ±1 coefficients, restores every helper
+exactly over ℤ. #370 states that its signed decoder was not run. Other points:
+
+- The nondegeneracy test uses `BBᵀ` under the standard form, which is positive
+  definite, so it cannot fail. Nothing argues that this form, rather than
+  `I-J/9`, is the admissible ambient form for the E8 family.
+- The source-owner and donor legality checks are empty (`source_owned_roles=[]`).
+- NCOPY = 9 and the transfer of PR234's bank construction to a non-paired-cube
+  family are admitted, not proved.
+- The complex unit (h = 9) and the bit word (h = 8) use different h; nothing
+  checks that this is allowed.
+- b comes from unmerged #352.
+
+**#373.** The bit word is byte-identical to #370's, and the complex files are
+identical to #363's. κ depends only on b₃, since c exceeds the cap by 3.8%. The
+bit-side B₃ evidence is an F2 all-column check plus exact geometry on seven
+blocks. The omitted-bridge controls run on 6-bit abstract vectors, and the
+five-stage outer and finite-bill constants are reused as fixed bounds. Those
+bounds still hold with seven-stage counts.
+
+**#371.** The original block step in `notes/fast-gaussian-resampling.tex:143-153`
+asserts the error bound `2^{Γ+9-P} F L_A ≤ 2^{-p-2}` after rounding to the p-grid.
+Take p=101, P=p+12, Γ=0, unit factors and `f₀ = h/2`. The asserted bound is h/8,
+but every grid point is at distance at least h/2. We confirmed this with exact
+arithmetic for p = 101, 200 and 1000. With the PR's accounting the totals are
+1 + 1/4 + √2 ≈ 2.664 < 3 and ≈ 4.664 < 5, so the interface constants 16p and p/3,
+and every κ, are unchanged. Two things remain:
+
+- The PR does not regenerate `certificates/batched-network.json` (file hash)
+  or `patches/batched-23.patch`.
+- The θ ≤ 1/4, σ < 2 restriction is an inherited gap in the lemma header.
+
+## A composition found during review
+
+PR #365's retimed E8 complex unit had only been priced in the five-stage word.
+Run through #363's seven-stage guard, it raises b₃ to 932928054566567/1e18 and
+κ to **233014627343551/2.5e17 ≈ 9.32059e-4 (+0.0155% over #373)**. It inherits
+every obligation above, including the F2-only bit word. See
+[../e8-retimed-seven-stage](../e8-retimed-seven-stage/README.md).
+
 ## Reproduce
 
 ```sh
