@@ -3,6 +3,10 @@
 **Conditional κ = 233014627343551/250000000000000000 ≈ 9.32058509374204 × 10⁻⁴**,
 **+0.01551%** over PR #373 (93191395651209/10¹⁷). The complex side binds.
 
+**Status: superseded.** PR #375's unsplit B₃ layout and the complex retimings
+in PRs #374 and #378 already exceed this value, and PR #380 (≈ 9.6726 × 10⁻⁴,
+bit-bound) is higher again. The package is kept as a verified record.
+
 This is a composition of three open, unmerged pull requests. It adds no new
 circuit:
 
@@ -59,13 +63,14 @@ Every obligation of the three source PRs is inherited.
 - **The retimed unit has no Lean build.** PR #363's step regenerating
   Sussman's Lean data byte for byte applies only to the original certificate
   and is not run here.
-- **PR #370's E8 bit word is correct over F₂ only.** All 14,603 ADDs have
-  coefficient +1. Replaying them over ℤ leaves every one of the 865 helper
-  registers wrong by even multiples. The p=10 words used by PR #366, by contrast,
-  restore all helpers exactly over ℤ. PR #370 states that its signed decoder was
-  not run. κ here depends only on b₃, but it still needs a valid bit word
-  whose saving exceeds the complex cap. A signed lift of the E8 word is an open
-  requirement for PR #370, PR #373 and this composition.
+- **PR #370's E8 bit word is checked over F₂.** That is the accepted standard,
+  not a gap: the reviewed gen4 result deletes its even-coefficient payload ADDs
+  as "identities over F₂" (`research/five-stage-gen4-banks/PROOF.md:100`). Even
+  PR #366's p=10 word, whose helpers do restore over ℤ, has y outputs that over ℤ
+  carry even multiples of helper registers. An earlier version of this note
+  called F₂-only correctness an open requirement; that was wrong. κ here
+  depends only on b₃, provided PR #370's word stays admissible above the
+  complex cap.
 - The bit coarse saving c is an input certified by PR #373's `verify.sh`; this
   package does not replay the bit word. An independent replay of PR #373 at
   `3ff87b5` reproduced c exactly.

@@ -94,14 +94,18 @@ These were replayed by delegated subagents and spot-checked directly as noted.
 
 | PR | Head | Claim | Replay | Independent | Verdict |
 | --- | --- | --- | --- | --- | --- |
-| #370 | `b7fe9cd` | κ = 875481145306751/1e18, complex-bound; bit c = 452036410121261/5e17 | PASS, 123s | c and κ exact | arithmetic reproduced; bit word correct over F2 only |
+| #370 | `b7fe9cd` | κ = 875481145306751/1e18, complex-bound; bit c = 452036410121261/5e17 | PASS, 123s | c and κ exact | arithmetic reproduced; form and NCOPY=9 admissions open |
 | #373 | `3ff87b5` | κ = 93191395651209/1e17, complex-bound; bit c = 968197503705007/1e18 | PASS, 2m34s | c and κ exact | reproduced; rests on unproved B₃ |
 | #371 | `988ef67` | correction to `lem:chirped-gaussian` | — | counterexample rechecked | flaw real, fix sound, no κ changes |
 
-**#370.** The E8 word's 14,603 ADDs all have coefficient +1. We replayed it over ℤ
-directly. All 865 helper registers fail to restore over ℤ, though every one is
-correct mod 2. #366's p=10 word, with ±1 coefficients, restores every helper
-exactly over ℤ. #370 states that its signed decoder was not run. Other points:
+**#370.** The E8 word's 14,603 ADDs all have coefficient +1, and its helpers
+restore over F₂ but not over ℤ. **This is not a defect.** We first reported it as
+one, then checked the accepted standard. The reviewed gen4 result deletes
+1,510,656 even-coefficient payload ADDs as identities over F₂
+(`research/five-stage-gen4-banks/PROOF.md:100`). #366's p=10 word, whose helpers
+do restore over ℤ, still has y outputs that over ℤ contain even multiples of
+helper registers. So F₂ column correctness plus signed prefix bounds is the bar,
+and #370 meets it. Points that do remain:
 
 - The nondegeneracy test uses `BBᵀ` under the standard form, which is positive
   definite, so it cannot fail. Nothing argues that this form, rather than
@@ -137,7 +141,7 @@ and every κ, are unchanged. Two things remain:
 PR #365's retimed E8 complex unit had only been priced in the five-stage word.
 Run through #363's seven-stage guard, it raises b₃ to 932928054566567/1e18 and
 κ to **233014627343551/2.5e17 ≈ 9.32059e-4 (+0.0155% over #373)**. It inherits
-every obligation above, including the F2-only bit word. See
+every obligation above, including #363's unproved B₃ and #370's admissions. It was superseded the same day by #374, #375, #378 and #380. See
 [../e8-retimed-seven-stage](../e8-retimed-seven-stage/README.md).
 
 ## Reproduce
