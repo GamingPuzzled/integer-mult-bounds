@@ -1,0 +1,32 @@
+{
+  "schema_version": 1,
+  "status": "ready",
+  "python": "3.12",
+  "requirements": [],
+  "inputs": [],
+  "commands": [
+    {
+      "argv": [
+        "{python}",
+        "-W",
+        "error",
+        "-B",
+        "{package}/verify.py"
+      ],
+      "timeout_seconds": 600,
+      "checks": "Authenticate source bytes and all 33 archive payloads; regenerate the exact word; prove trace equivalence (every dependent pair keeps its order); dense all-column phase check of every new native map (PR5548 checker); replay both arbitrary-input endpoints, dense transpose, all native maps and the full physical caller; complete invoice, two rational moment engines, fixed-invoice derivative, compiler, 58 outer predicates and negative controls; compare the complete receipt."
+    },
+    {
+      "argv": [
+        "{python}",
+        "-W",
+        "error",
+        "-B",
+        "-O",
+        "{package}/verify.py"
+      ],
+      "timeout_seconds": 600,
+      "checks": "Same as above under -O."
+    }
+  ]
+}

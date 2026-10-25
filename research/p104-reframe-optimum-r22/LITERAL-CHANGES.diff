@@ -1,0 +1,31 @@
+--- inputs/pr5580-pricing.py (PR5580 head 6efa248cf)
++++ pricing.py
+@@ -11,8 +11,8 @@
+ from fractions import Fraction as Q
+ import local as L
+ 
+-KAPPA, TESTED = Q('.00308189'), Q('.0030818905')
+-PREVIOUS = Q('.00308181')
++KAPPA, TESTED = Q('.00308598'), Q('.0030859805')
++PREVIOUS = Q('.00308189')
+ 
+ 
+ def encode(x):
+@@ -61,7 +61,7 @@
+             second_p[8*(j+1)] += 208
+     L.need((targets,paid) == (second_t,second_p), 'Independent full invoice')
+     L.need(max(targets) == 145 and max(paid) == 72, 'Maximum recursive ranks')
+-    L.need(sum(targets.values()) == 12814 and sum(paid.values()) == 66852, 'Complete field and call counts')
++    L.need(sum(targets.values()) == 12814 and sum(paid.values()) == 66690, 'Complete field and call counts')
+     L.need(sum(r*n for r,n in targets.items())-sum(r*n for r,n in paid.items()) == 760, 'Complete rank surplus')
+     return targets,paid,counts
+ 
+@@ -139,7 +139,7 @@
+     L.need(wrong_cutoff[0] > 1, 'Old cutoff fails with this helper inventory')
+     bad=outer_module.ledger(dict(params,bit_saving=Q('.0027')))
+     L.need(any(x <= 0 for x in bad['strict_checks'].values()), 'Insufficient BIT contract rejected')
+-    return encode({'kappa':KAPPA,'kappa_decimal':'.00308189','previous_open_pr5569':PREVIOUS,'gain':KAPPA-PREVIOUS,
++    return encode({'kappa':KAPPA,'kappa_decimal':'.00308598','previous_open_pr5580':PREVIOUS,'gain':KAPPA-PREVIOUS,
+                    'relative_gain_percent':100*(KAPPA/PREVIOUS-1),'raw_root_interval':[lower,upper],
+                    'raw_headroom':[lower-KAPPA,upper-KAPPA],'margin_at_previous':E.display(margin(PREVIOUS)),
+                    'targets':T,'paid':P,'productive_fields':sum(T.values()),'paid_calls':sum(P.values()),

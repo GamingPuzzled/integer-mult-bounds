@@ -1,0 +1,18 @@
+[
+ [
+  "KAPPA, TESTED = Q('.00308189'), Q('.0030818905')",
+  "KAPPA, TESTED = Q('.00308598'), Q('.0030859805')"
+ ],
+ [
+  "PREVIOUS = Q('.00308181')",
+  "PREVIOUS = Q('.00308189')"
+ ],
+ [
+  "sum(paid.values()) == 66852",
+  "sum(paid.values()) == 66690"
+ ],
+ [
+  "'kappa_decimal':'.00308189','previous_open_pr5569':PREVIOUS",
+  "'kappa_decimal':'.00308598','previous_open_pr5580':PREVIOUS"
+ ]
+]
