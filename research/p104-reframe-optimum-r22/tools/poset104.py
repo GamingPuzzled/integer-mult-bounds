@@ -13,9 +13,10 @@ touching owned registers are pinned to their current frame.  INIT/CLEAR also hit
 import gzip, json, sys
 from collections import defaultdict, Counter
 
-NH = 735
+NH = int(__import__('os').environ.get('P104_NPUB', '735'))
 import os
 FIXED = bool(os.environ.get('FIXED'))
+OWNED_FREE = bool(os.environ.get('OWNED_FREE'))   # free owned charts; owned lifetimes as decreasing paths
 FULLMASK = None
 
 
@@ -116,6 +117,16 @@ def setup(w):
     role = roles(w)
     cur = [W[op_frame(e)] for e in p]
     pinned = {i for i, e in enumerate(p) if any(r != 'OWN' and r >= NH for r, _ in reg_types(e))}
+    if __import__('os').environ.get('P104_UNPIN_OWNED') or OWNED_FREE:   # owned charts free (OWNED_FREE: chains modelled)
+        pinned = set()
+    # owned lifetimes: (r, k) = k-th INIT..CLEAR of owned register r
+    nlt, own = defaultdict(int), defaultdict(dict)
+    for i, e in enumerate(p):
+        for r, _ in reg_types(e):
+            if r == 'OWN' or r < NH: continue
+            if e[0] == 'INIT': nlt[r] += 1
+            own[i][r] = (r, nlt[r] - 1)
+    P['own'] = own
     # pinned register ends (main registers only); helpers free
     start, final = {}, {}
     for r in range(NH):
@@ -127,6 +138,10 @@ def setup(w):
 
 def pub_regs(P, i):
     return [r for r in P['pos'][i] if r != 'OWN' and r < NH]
+
+
+def own_keys(P, i):
+    return list(P['own'].get(i, {}).values())
 
 
 def bounds(P, dom=None):
@@ -214,8 +229,12 @@ def domains(P, w, mode='restricted', maxgap=3, verbose=True):
     allfr = sorted(set(P['W']))
     dom = {}
     cache = {}
+    win = os.environ.get('WIN')   # large-neighbourhood search: only ops lo..hi-1 are free
+    win = tuple(map(int, win.split(':'))) if win else (0, n)
+    winregs = os.environ.get('WINREGS')   # register neighbourhood: only ops touching these public registers are free
+    winregs = set(map(int, winregs.split(','))) if winregs else None
     for i in range(n):
-        if i in P['pinned']:
+        if i in P['pinned'] or not win[0] <= i < win[1] or (winregs is not None and not winregs & set(pub_regs(P, i))):
             dom[i] = {cur[i]}; continue
         if mode == 'restricted':
             pool = set().union(*(regfr[r] for r in pub_regs(P, i)))
@@ -227,6 +246,14 @@ def domains(P, w, mode='restricted', maxgap=3, verbose=True):
                 cache[key] = subspaces_between(S, lows[i], ups[i], maxgap)
             pool = cache[key] if cache[key] is not None else set().union(*(regfr[r] for r in pub_regs(P, i))) | set(allfr)
         dom[i] = {x for x in pool if S.le(lows[i], x) and S.le(x, ups[i])} | {cur[i]}
+    if OWNED_FREE:   # owned-only ops (INIT/CLEAR/SCALE/owned-to-owned) take the union of their lifetime's charts
+        lt = defaultdict(set)
+        for i in range(n):
+            if pub_regs(P, i):
+                for key in own_keys(P, i): lt[key] |= dom[i]
+        for i in range(n):
+            if not pub_regs(P, i) and own_keys(P, i) and i not in P['pinned']:
+                dom[i] = set().union(*(lt[key] for key in own_keys(P, i))) | {cur[i]}
     # fixpoint: tightened bounds + comparability with forced frames of each register
     for rnd in range(20):
         lows, ups = bounds(P, dom)

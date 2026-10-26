@@ -1,7 +1,7 @@
 """Lazy loop: exact MIP -> realize -> cycle no-good cuts -> exact price.  usage: loop104.py WORD MODE TL [maxgap] [OUTWORD]"""
 import sys, os, time, json, gzip
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-sys.path.insert(0, os.environ.get('TK_INFRA', os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../p104-designer-toolkit/infra')))  # PR5568 legal.py/price_exact.py
+sys.path.insert(0, os.environ.get('TK_INFRA', os.path.join(os.path.dirname(os.path.abspath(__file__)), '../../p104-designer-toolkit/infra')))
 from mip104 import *
 from realize104 import realize
 import legal, price_exact as X
@@ -97,6 +97,9 @@ if __name__ == '__main__':
         if it == 0: print('vars', len(M['cost']), 'rows', len(M['rlb']), 'V', len(M['V']), 'hubs', M['nh'], 'closure pairs', M['ncl'], 't %.1f' % (time.time() - t), flush=True)
         h = solve(M, tl); info = h.getInfo(); x = np.array(h.getSolution().col_value)
         st = h.modelStatusToString(h.getModelStatus())
+        if info.primal_solution_status != 2:   # no feasible incumbent (e.g. time limit): x is meaningless
+            print('it', it, st, 'NO INCUMBENT bound %.9f t %.1f' % (info.mip_dual_bound, time.time() - t), flush=True)
+            sys.exit(2)
         fr = extract(M, P, dom, x); c1, p1, cr1 = chain_cost(P, fr)
         cyc = find_cycle(P, fr)
         extra = all_cycles(P, fr) if cyc is not None else []
@@ -117,6 +120,7 @@ if __name__ == '__main__':
     changed = [i for i in range(len(fr)) if fr[i] != P['cur'][i]]
     print('changed ops', len(changed))
     for i in changed[:40]: print('  op', i, 'ev', P['opsidx'][i], P['p'][i], 'dim', P['S'].dim[P['cur'][i]], '->', P['S'].dim[fr[i]])
+    json.dump({str(i): P['S'].basis[fr[i]] for i in changed}, open((outw or 'sol') + '.frames.json', 'w'))
     if c0 - c1 > 1e-12:
         w2, order = realize(w, P, fr, move_order=mo)
         rep = legal.check(w2); T, Pp = X.invoice(rep); k = X.kappa_dec(T, Pp)

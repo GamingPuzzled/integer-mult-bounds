@@ -31,6 +31,15 @@ def chain_cost(P, frames, k=KAPPA):
             paid[S.dim[b] - S.dim[a]] += 1
         if P['role'](r) == 'H':
             cred[S.dim[ch[-1]] - S.dim[ch[0]]] += 1
+    if OWNED_FREE:   # owned lifetimes: decreasing chains, free INIT/CLEAR ends, no credit
+        lts = defaultdict(set)
+        for i, x in enumerate(frames):
+            for key in own_keys(P, i): lts[key].add(x)
+        for key, fs in lts.items():
+            ch = sorted(fs, key=lambda x: -S.dim[x])
+            for a, b in zip(ch, ch[1:]):
+                assert S.lt(b, a), ('not a decreasing chain', key)
+                paid[S.dim[a] - S.dim[b]] += 1
     cost = sum(n * fw(d, k) for d, n in paid.items()) - sum(n * fw(d, k) for d, n in cred.items())
     return cost, paid, cred
 
@@ -131,6 +140,36 @@ def build_mip(P, dom, forced, k=KAPPA, cuts=None):
         if len(dom[i]) == 1:
             return [], 1.0 if S.dim[next(iter(dom[i]))] <= l else 0.0
         return [(V[i, x], 1) for x in dom[i] if S.dim[x] <= l], 0.0
+    if OWNED_FREE:
+        # owned lifetime: a decreasing unit path SRC -> charts -> SNK (free INIT/CLEAR ends, no credit);
+        # every op of the lifetime lies on it, and dims never rise along the (fixed) owned op order
+        lt_ops = defaultdict(list)
+        for i in range(n):
+            for key in own_keys(P, i): lt_ops[key].append(i)
+        for key, ops in lt_ops.items():
+            cand = sorted(set().union(*(dom[i] for i in ops)), key=lambda x: -S.dim[x])
+            nodes = [SRC] + cand + [SNK]
+            out, inl, into = defaultdict(list), defaultdict(list), defaultdict(list)
+            for u in nodes:
+                for v in nodes:
+                    if u == v or u == SNK or v == SRC or (u == SRC and v == SNK): continue
+                    if u != SRC and v != SNK and not S.lt(v, u): continue
+                    j = var(0.0 if (u == SRC or v == SNK) else fw(S.dim[u] - S.dim[v], k))
+                    out[u].append(j); inl[v].append(j)
+                    if v != SNK: into[v].append(j)
+            for u in nodes:
+                rhs = 1 if u == SRC else (-1 if u == SNK else 0)
+                row([(j, 1) for j in out[u]] + [(j, -1) for j in inl[u]], rhs, rhs)
+            for i in ops:
+                for x in dom[i]:
+                    row(([(V[i, x], 1)] if len(dom[i]) > 1 else []) + [(j, -1) for j in into[x]],
+                        -np.inf, 0 if len(dom[i]) > 1 else -1)
+            for a, b in zip(ops, ops[1:]):
+                if len(dom[a]) == 1 and len(dom[b]) == 1: continue
+                for l in range(min(S.dim[x] for x in dom[a] | dom[b]), max(S.dim[x] for x in dom[a] | dom[b])):
+                    ea, ca = cum(a, l); eb, cb = cum(b, l)
+                    # dim b <= dim a:  P(a <= l) <= P(b <= l)
+                    row(eb + [(x, -c) for x, c in ea], ca - cb, np.inf)
     nh = 0
     for r, gl in groups.items():
         if r == 'OWN' or r >= NH: continue

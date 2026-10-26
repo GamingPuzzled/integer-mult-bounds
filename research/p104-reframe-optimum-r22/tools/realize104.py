@@ -62,6 +62,10 @@ def realize(w, P, frames, keep_ends=False, move_order=None):
         for r in range(NH):
             if P['role'](r) == 'H' and r in first:
                 init[r] = fid(first[r]); fin[r] = fid(last[r])
+                if first[r] == last[r]:   # rank 0: the MIP path ends at an op-free node; keep the original final above
+                    of = P['W'][w['final'][r]]
+                    assert S.lt(last[r], of), ('rank-0 helper', r)
+                    fin[r] = w['final'][r]
     cur = {r: init[r] for r in range(NH)}
     out = []
     def need(r, f):
